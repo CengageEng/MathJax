@@ -2390,6 +2390,7 @@ MathJax.Hub.Startup = {
       MathJax.HTML.setScriptBug = !browser.isIE9 || document.documentMode < 9;
       var MathPlayer = false;
       try {new ActiveXObject("MathPlayer.Factory.1"); MathPlayer = true} catch(err) {}
+      try{
       if (MathPlayer && !STARTUP.params.NoMathPlayer) {
         var mathplayer = document.createElement("object");
         mathplayer.id = "mathplayer"; mathplayer.classid = "clsid:32F66A20-7614-11D4-BD11-00104BD3F987";
@@ -2407,6 +2408,7 @@ MathJax.Hub.Startup = {
         //   "complete" causes an "unspecified error" to be thrown)
         document.namespaces.add("mjx_IE_fix","http://www.w3.org/1999/xlink");
       }
+      } catch (err) {}
     }
   });
   HUB.Browser.Select(MathJax.Message.browsers);
