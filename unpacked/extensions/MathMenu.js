@@ -866,7 +866,7 @@
       var isIE8 = browser.versionAtLeast("8.0") && document.documentMode > 7;
       MENU.Augment({
         margin: 20,
-        msieBackgroundBug: true,
+        msieBackgroundBug: (document.documentMode < 9),
         msieFixedPositionBug: (quirks || !isIE8),
         msieAboutBug: quirks
       });
