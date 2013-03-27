@@ -219,7 +219,78 @@
       zoom.style.left = Math.max(dx,10-x)+"px"; zoom.style.top = Math.max(dy,10-y)+"px";
       if (!ZOOM.msiePositionBug) {ZOOM.SetWH()} // refigure overlay width/height
     },
-    
+
+      offsetCalculator : {
+          _init : function() {
+              this.body = document.getElementsByTagName("body")[0];
+              this.doesNotIncludeMarginInBodyOffset = ( this.body.offsetTop !== 1 );
+              this._isBoxModel();
+          },
+
+          offset : function( elem ) {
+              this._init();
+              if ( !elem || !elem.ownerDocument ) {
+                  return null;
+              }
+
+              if ( elem === elem.ownerDocument.body ) {
+                  return this._bodyOffset( elem );
+              }
+
+              try {
+                  box = elem.getBoundingClientRect();
+              } catch(e) {}
+
+              var doc = elem.ownerDocument,
+                  docElem = doc.documentElement;
+
+
+              var body = doc.body,
+                  win = this._getWindow(doc),
+                  clientTop  = docElem.clientTop  || body.clientTop  || 0,
+                  clientLeft = docElem.clientLeft || body.clientLeft || 0,
+                  scrollTop  = win.pageYOffset || this.boxModel && docElem.scrollTop  || body.scrollTop,
+                  scrollLeft = win.pageXOffset || this.boxModel && docElem.scrollLeft || body.scrollLeft,
+                  top  = box.top  + scrollTop  - clientTop,
+                  left = box.left + scrollLeft - clientLeft;
+
+              return { top: top, left: left };
+          },
+
+          _isBoxModel : function() {
+              var div = document.createElement("div");
+              div.style.width = div.style.paddingLeft = "1px";
+
+              document.body.appendChild( div );
+              this.boxModel = div.offsetWidth === 2;
+              document.body.removeChild( div ).style.display = 'none';
+              div = null;
+          },
+
+          _bodyOffset: function( body ) {
+              var top = body.offsetTop,
+                  left = body.offsetLeft;
+
+              if ( this.doesNotIncludeMarginInBodyOffset ) {
+                  top  += parseFloat( jQuery.css(body, "marginTop") ) || 0;
+                  left += parseFloat( jQuery.css(body, "marginLeft") ) || 0;
+              }
+
+              return { top: top, left: left };
+          },
+
+          _getWindow : function( elem ) {
+              return this._isWindow( elem ) ? elem :
+                  elem.nodeType === 9 ?
+                      elem.defaultView || elem.parentWindow :
+                      false;
+          },
+
+          _isWindow: function( obj ) {
+              return obj && typeof obj === "object" && "setInterval" in obj;
+          }
+      },
+
     //
     //  Handle resizing of overlay while zoom is displayed
     //
@@ -228,9 +299,9 @@
       var x = 0, y = 0, obj,
           div = document.getElementById("MathJax_ZoomFrame"),
           overlay = document.getElementById("MathJax_ZoomOverlay");
-      obj = div; while (obj.offsetParent) {x += obj.offsetLeft; obj = obj.offsetParent}
-      if (ZOOM.operaPositionBug) {div.style.border = "1px solid"}  // to get vertical position right
-      obj = div; while (obj.offsetParent) {y += obj.offsetTop; obj = obj.offsetParent}
+      var offset = this.offsetCalculator.offset(overlay);
+      x = offset.left;
+      y = offset.top;
       if (ZOOM.operaPositionBug) {div.style.border = ""}
       overlay.style.left = (-x)+"px"; overlay.style.top = (-y)+"px";
       if (ZOOM.msiePositionBug) {setTimeout(ZOOM.SetWH,0)} else {ZOOM.SetWH()}
