@@ -1,3 +1,6 @@
+/* -*- Mode: Javascript; indent-tabs-mode:nil; js-indent-level: 2 -*- */
+/* vim: set ts=2 et sw=2 tw=80: */
+
 /*************************************************************
  *
  *  MathJax/jax/output/HTML-CSS/autoload/maction.js
@@ -6,7 +9,7 @@
  *
  *  ---------------------------------------------------------------------
  *  
- *  Copyright (c) 2010-2012 Design Science, Inc.
+ *  Copyright (c) 2010-2013 The MathJax Consortium
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,7 +25,7 @@
  */
 
 MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
-  var VERSION = "2.0";
+  var VERSION = "2.2";
   var MML = MathJax.ElementJax.mml,
       HTMLCSS = MathJax.OutputJax["HTML-CSS"];
   
@@ -41,15 +44,19 @@ MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
     HTMLtooltip: HTMLCSS.addElement(document.body,"div",{id:"MathJax_Tooltip"}),
     
     toHTML: function (span,HW,D) {
-      span = this.HTMLhandleSize(this.HTMLcreateSpan(span)); span.bbox = null;
       var selected = this.selected();
-      if (selected) {
-        var box = selected.toHTML(span);
-        if (D != null) {HTMLCSS.Remeasured(selected.HTMLstretchV(span,HW,D),span)}
-        else if (HW != null) {HTMLCSS.Remeasured(selected.HTMLstretchH(span,HW),span)}
-	else {HTMLCSS.Measured(box,span)}
-        this.HTMLhandleHitBox(span);
+      if (selected.type == "null") {
+        span = this.HTMLcreateSpan(span);
+        span.bbox = this.HTMLzeroBBox();
+        return span;
       }
+      span = this.HTMLhandleSize(this.HTMLcreateSpan(span)); span.bbox = null;
+      var box = selected.toHTML(span);
+      if (D != null) {HTMLCSS.Remeasured(selected.HTMLstretchV(span,HW,D),span)}
+      else if (HW != null) {
+        HTMLCSS.Remeasured(selected.HTMLstretchH(span,HW),span)
+      } else {HTMLCSS.Measured(box,span)}
+      this.HTMLhandleHitBox(span);
       this.HTMLhandleSpace(span);
       this.HTMLhandleColor(span);
       return span;
@@ -128,11 +135,14 @@ MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
     //
     HTMLsetStatus: function (event) {
       // FIXME:  Do something better with non-token elements
-      window.status =
+      this.messageID = MathJax.Message.Set
         ((this.data[1] && this.data[1].isToken) ?
              this.data[1].data.join("") : this.data[1].toString());
     },
-    HTMLclearStatus: function (event) {window.status = ""},
+    HTMLclearStatus: function (event) {
+      if (this.messageID) {MathJax.Message.Clear(this.messageID,0)}
+      delete this.messageID;
+    },
     
     //
     //  Handle tooltips

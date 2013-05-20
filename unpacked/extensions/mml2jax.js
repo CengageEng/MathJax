@@ -1,3 +1,6 @@
+/* -*- Mode: Javascript; indent-tabs-mode:nil; js-indent-level: 2 -*- */
+/* vim: set ts=2 et sw=2 tw=80: */
+
 /*************************************************************
  *
  *  MathJax/extensions/mml2jax.js
@@ -8,7 +11,7 @@
  *
  *  ---------------------------------------------------------------------
  *  
- *  Copyright (c) 2010-2012 Design Science, Inc.
+ *  Copyright (c) 2010-2013 The MathJax Consortium
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,7 +27,7 @@
  */
 
 MathJax.Extension.mml2jax = {
-  version: "2.0",
+  version: "2.2",
   config: {
     preview: "alttext"      // Use the <math> element's alttext as the 
                             //   preview.  Set to "none" for no preview,
@@ -56,15 +59,17 @@ MathJax.Extension.mml2jax = {
     //  Handle math with namespaces in HTML
     //
     var i, m;
-    if (document.namespaces) {
+    if (typeof(document.namespaces) !== "undefined") {
       //
       // IE namespaces are listed in document.namespaces
       //
-      for (i = 0, m = document.namespaces.length; i < m; i++) {
-        var ns = document.namespaces[i];
-        if (ns.urn === this.MMLnamespace)
-          {this.ProcessMathArray(element.getElementsByTagName(ns.name+":math"))}
-      }
+      try {
+        for (i = 0, m = document.namespaces.length; i < m; i++) {
+          var ns = document.namespaces[i];
+          if (ns.urn === this.MMLnamespace)
+            {this.ProcessMathArray(element.getElementsByTagName(ns.name+":math"))}
+        }
+      } catch (err) {}
     } else {
       //
       //  Everybody else
@@ -170,15 +175,16 @@ MathJax.Extension.mml2jax = {
   },
   quoteHTML: function (string) {
     if (string == null) {string = ""}
-    return string.replace(/&/g,"&#x26;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    return string.replace(/&/g,"&#x26;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");
   },
   
   createPreview: function (math,script) {
-    var preview;
-    if (this.config.preview === "alttext") {
+    var preview = this.config.preview;
+    if (preview === "none") return;
+    if (preview === "alttext") {
       var text = math.getAttribute("alttext");
-      if (text != null) {preview = [this.filterPreview(text)]}
-    } else if (this.config.preview instanceof Array) {preview = this.config.preview}
+      if (text != null) {preview = [this.filterPreview(text)]} else {preview = null}
+    } 
     if (preview) {
       preview = MathJax.HTML.Element("span",{className:MathJax.Hub.config.preRemoveClass},preview);
       script.parentNode.insertBefore(preview,script);

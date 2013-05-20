@@ -1,3 +1,6 @@
+/* -*- Mode: Javascript; indent-tabs-mode:nil; js-indent-level: 2 -*- */
+/* vim: set ts=2 et sw=2 tw=80: */
+
 /*************************************************************
  *
  *  MathJax/jax/output/HTML-CSS/autoload/menclose.js
@@ -6,7 +9,7 @@
  *
  *  ---------------------------------------------------------------------
  *  
- *  Copyright (c) 2010-2012 Design Science, Inc.
+ *  Copyright (c) 2010-2013 The MathJax Consortium
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,7 +25,7 @@
  */
 
 MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
-  var VERSION = "2.0";
+  var VERSION = "2.2";
   var MML = MathJax.ElementJax.mml,
       HTMLCSS = MathJax.OutputJax["HTML-CSS"];
   
@@ -36,12 +39,12 @@ MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
       if (values.color && !this.mathcolor) {values.mathcolor = values.color}
       if (values.thickness == null) {values.thickness = ".075em"}
       if (values.padding == null)   {values.padding   = ".2em"}
+      span = this.HTMLcreateSpan(span);
       var mu = this.HTMLgetMu(span), scale = this.HTMLgetScale();
-      var p = HTMLCSS.length2em(values.padding,mu,1/HTMLCSS.em) * scale;
-      var t = HTMLCSS.length2em(values.thickness,mu,1/HTMLCSS.em) * scale;
+      var p = HTMLCSS.length2em(values.padding,mu,1/HTMLCSS.em) * scale;  // padding for enclosure
+      var t = HTMLCSS.length2em(values.thickness,mu,1/HTMLCSS.em);        // thickness of lines (not scaled, see issue #414)
       var SOLID = HTMLCSS.Em(t)+" solid";
 
-      span = this.HTMLcreateSpan(span);
       var stack = HTMLCSS.createStack(span);
       var base = HTMLCSS.createBox(stack);
       this.HTMLmeasureChild(0,base);
@@ -49,7 +52,7 @@ MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
       var frame = HTMLCSS.createFrame(stack,H+D,0,W,t,"none");
       frame.id = "MathJax-frame-"+this.spanID;
       HTMLCSS.addBox(stack,frame); stack.insertBefore(frame,base); // move base to above background
-      var notation = values.notation.split(/ /);
+      var notation = MathJax.Hub.SplitList(values.notation);
       var T = 0, B = 0, R = 0, L = 0, dx = 0, dy = 0; var svg, vml;
       var w, h, r;
       if (!values.mathcolor) {values.mathcolor = "black"} else {span.style.color = values.mathcolor}
@@ -279,14 +282,19 @@ MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
   
   MathJax.Hub.Browser.Select({
     MSIE: function (browser) {
-      MML.menclose.Augment({HTMLpx: function (n,d) {return (n*HTMLCSS.em+(d||0))+"px"}});
-      HTMLCSS.useVML = true;
-      if (!document.namespaces[vmlns]) {
-        if (document.documentMode && document.documentMode >= 8) {
-          document.namespaces.add(vmlns,VMLNS,"#default#VML");
-        } else {
-          document.namespaces.add(vmlns,VMLNS);
-          document.createStyleSheet().addRule(vmlns+"\\: *","{behavior: url(#default#VML)}");
+      //
+      //  IE8 and below doesn't have SVG, so use VML
+      //
+      if ((document.documentMode||0) < 9) {
+        MML.menclose.Augment({HTMLpx: function (n,d) {return (n*HTMLCSS.em+(d||0))+"px"}});
+        HTMLCSS.useVML = true;
+        if (!document.namespaces[vmlns]) {
+          if (document.documentMode && document.documentMode === 8) {
+            document.namespaces.add(vmlns,VMLNS,"#default#VML");
+          } else {
+            document.namespaces.add(vmlns,VMLNS);
+            document.createStyleSheet().addRule(vmlns+"\\: *","{behavior: url(#default#VML)}");
+          }
         }
       }
     }

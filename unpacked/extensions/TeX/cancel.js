@@ -1,3 +1,6 @@
+/* -*- Mode: Javascript; indent-tabs-mode:nil; js-indent-level: 2 -*- */
+/* vim: set ts=2 et sw=2 tw=80: */
+
 /*************************************************************
  *
  *  MathJax/extensions/TeX/cancel.js
@@ -13,7 +16,7 @@
  *  
  *  ---------------------------------------------------------------------
  *  
- *  Copyright (c) 2011-2012 Design Science, Inc.
+ *  Copyright (c) 2011-2013 The MathJax Consortium
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,7 +32,7 @@
  */
 
 MathJax.Extension["TeX/cancel"] = {
-  version: "2.0",
+  version: "2.2",
 
   //
   //  The attributes allowed in \enclose{notation}[attributes]{math}
@@ -45,7 +48,6 @@ MathJax.Extension["TeX/cancel"] = {
 
 MathJax.Hub.Register.StartupHook("TeX Jax Ready",function () {
   var TEX = MathJax.InputJax.TeX,
-      MACROS = TEX.Definitions.macros,
       MML = MathJax.ElementJax.mml,
       CANCEL = MathJax.Extension["TeX/cancel"];
       
@@ -65,12 +67,16 @@ MathJax.Hub.Register.StartupHook("TeX Jax Ready",function () {
       };
   
   //
-  //  Set up macro
+  //  Set up macros
   //
-  MACROS.cancel  = ['Cancel',MML.NOTATION.UPDIAGONALSTRIKE];
-  MACROS.bcancel = ['Cancel',MML.NOTATION.DOWNDIAGONALSTRIKE];
-  MACROS.xcancel = ['Cancel',MML.NOTATION.UPDIAGONALSTRIKE+" "+MML.NOTATION.DOWNDIAGONALSTRIKE];
-  MACROS.cancelto = 'CancelTo';
+  TEX.Definitions.Add({
+    macros: {
+      cancel:   ['Cancel',MML.NOTATION.UPDIAGONALSTRIKE],
+      bcancel:  ['Cancel',MML.NOTATION.DOWNDIAGONALSTRIKE],
+      xcancel:  ['Cancel',MML.NOTATION.UPDIAGONALSTRIKE+" "+MML.NOTATION.DOWNDIAGONALSTRIKE],
+      cancelto: 'CancelTo'
+    }
+  },null,true);
 
   TEX.Parse.Augment({
     //
